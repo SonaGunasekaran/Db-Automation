@@ -1,7 +1,11 @@
-﻿using System;
+﻿/*
+ * Project:Connecting to Spotify Database
+ * Author:Sona G
+ * Date :19/08/2021
+ */
+using System;
 using System.Collections.Generic;
 using System.Text;
-
 namespace TestDbAutomation.DbAutomation
 {
    public class UserDetails
@@ -14,8 +18,6 @@ namespace TestDbAutomation.DbAutomation
         public double PhoneNumber { get; set; }
         public string Email { get; set; }
 
-
-
-
+        
     }
 }
