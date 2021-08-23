@@ -1,4 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿/*
+ * Project:Connecting to Spotify Database
+ * Author:Sona G
+ * Date :19/08/2021
+ */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -11,115 +16,82 @@ namespace TestDbAutomation.DbAutomation
         public static string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Spotify";
         //creating sql connection 
         SqlConnection sqlConnection = new SqlConnection(connectionString);
-        UserDetails userData;
-        [TestInitialize]
-        public void Setup()
-        {
-            userData = new UserDetails();
-        }
-        //[TestMethod]
-        public void TestMethod1()
-        {
-            using (this.sqlConnection)
-            {
-                this.sqlConnection.Open();
-                //retrieve the query
-                //SqlCommand insertCommand = new SqlCommand("Insert into Spotify_Table (FirstName,LastName,Age,Country,PhoneNumber,Email)values('" + userData.FirstName + "','" + userData.LastName + "'," + Convert.ToInt32(userData.Age)+ "'," + userData.Country+ "'," + Convert.ToDouble(userData.PhoneNumber) +  "','" + userData.Email +  "')";
-                SqlCommand insertCommand = new SqlCommand("Insert into Spotify_Table (FirstName,LastName,Age,Country,PhoneNumber,Email)values(@FirstName,@LastName,@Age,@Country,@PhoneNumber,@Email");
-                //insertCommand.Parameters.Add(new SqlParameter("Id", 6));
-                insertCommand.Parameters.Add(new SqlParameter("@FirstName{0}", userData.FirstName));
-                insertCommand.Parameters.Add(new SqlParameter("@LastName{0}", userData.LastName));
-                insertCommand.Parameters.Add(new SqlParameter("@Age{0}", userData.Age));
-                insertCommand.Parameters.Add(new SqlParameter("@Country{0}", userData.Country));
-                insertCommand.Parameters.Add(new SqlParameter("@PhoneNumber{0}", userData.PhoneNumber));
-                insertCommand.Parameters.Add(new SqlParameter("@Email{0}", userData.Email));
-
-                int result = insertCommand.ExecuteNonQuery();
-                if (result != 0)
-                {
-                    Console.WriteLine("Inserted successfully");
-                }
-            }
-        }
-        public UserDetails Test()
-        {
-            userData.FirstName = "Keerthi";
-            userData.LastName = "Suresh";
-            userData.Age = 19;
-            userData.Country = "US";
-            userData.PhoneNumber = 987234666;
-            userData.Email = "keer@gmail.com";
-            return userData;
-        }
-        public int RetrieveData()
-        {
-            //Count the number of data in table
-            int count = 0;
-            using (sqlConnection)
-            {
-                //Retrieve query
-                string query = @"select * from Spotify_Table";
-                SqlCommand command = new SqlCommand(query, this.sqlConnection);
-                //open sql connection
-                sqlConnection.Open();
-                //sql reader to read data
-                SqlDataReader sqlDataReader = command.ExecuteReader();
-                if (sqlDataReader.HasRows)
-                {
-                    while (sqlDataReader.Read())
-                    {
-                        count++;
-                    }
-                }
-                //close reader
-                sqlDataReader.Close();
-            }
-            this.sqlConnection.Close();
-            return count;
-        }
         [TestMethod]
-        public void TestMethodForRetriveDataUsingQuery()
+        public void RetrieveDataBasedOnStateAndCity()
         {
-            int expected = 6;
-            var actual = RetrieveData();
-            Assert.AreEqual(expected, actual);
-        }
-        public int RetrieveDataBasedOnStateAndCity()
-        {
-            int count = 0;
-           
+            try
+            {
                 using (sqlConnection)
                 {
-                    //Query Execution
-                    string query = @"Select FirstName from Spotify_table where Country='India'";
-                    //Passing the query and dbconnection
-                    SqlCommand sqlCommand = new SqlCommand(query, this.sqlConnection);
-                    //Opening the connection
                     sqlConnection.Open();
-                    int result = sqlCommand.ExecuteNonQuery();
-                    //SqlDataReader
-                    SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-                    if (sqlDataReader.HasRows)
+                    //Passing the query and dbconnection
+                    SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                    sqlCommand.CommandText =
+                          "Select FirstName from Spotify_Table where Country='India'" +
+                          "Select FirstName from Spotify_Table where Age= 23" +
+                          "select FirstName from Spotify_Table Where Country='India' order by(FirstName)" +
+                          "Select LastName from Spotify_Table where Age = 24";
+                    SqlDataReader mySqlDataReader = sqlCommand.ExecuteReader();
+                    do
                     {
-                        while (sqlDataReader.Read())
+                        while (mySqlDataReader.Read())
                         {
-                            count++;
-                            userData.FirstName = Convert.ToString(sqlDataReader["FirstName"]);
-                            Console.WriteLine("FirstName :{0}", userData.FirstName);
+                            Console.WriteLine("mySqlDataReader[0] = " + mySqlDataReader[0]);
                         }
-                    }
+                        Console.WriteLine(""); // visually split the results
+                    } while (mySqlDataReader.NextResult());
+
+                    mySqlDataReader.Close();
                 }
-                //closes the connection
-                sqlConnection.Close();
-                return count;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+            }
+            finally
+            {
+                this.sqlConnection.Close();
+            }
         }
         [TestMethod]
-        public void TestMethodForRetrieveDataBasedOnCityAndState()
+        public void UpdateData()
         {
-            int expected = 4;
-            var actual=RetrieveDataBasedOnStateAndCity();
-            Assert.AreEqual(expected, actual);
-        }
+            try
+            {
+                using (sqlConnection)
+                {
+                    //open sql connection
+                    sqlConnection.Open();
+                    //sql reader to read data
+                    SqlCommand sqlCommand = sqlConnection.CreateCommand();
+                    sqlCommand.CommandText =
+                        "update Spotify_Table set Country='Russia' where FirstName='Chandler'" +
+                        "update Spotify_Table set Age=34 where FirstName = 'Monica'" +
+                        "delete from Spotify_Table  where FirstName ='Katherine'" +
+                        "delete from Spotify_Table  where FirstName ='Maanvi'";
+                    SqlDataReader mySqlDataReader = sqlCommand.ExecuteReader();
+                    do
+                    {
+                        while (mySqlDataReader.Read())
+                        {
 
+                            Console.WriteLine("mySqlDataReader[0] = " + mySqlDataReader[0]);
+                        }
+                        Console.WriteLine(""); // visually split the results
+                    } while (mySqlDataReader.NextResult());
+
+                    mySqlDataReader.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                this.sqlConnection.Close();
+            }
+        }
     }
 }
